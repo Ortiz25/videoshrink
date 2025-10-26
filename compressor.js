@@ -3,28 +3,31 @@ const path = require('path');
 
 const QUALITY_PRESETS = {
   '720p': {
-    resolution: '1280x720',
+    scale: "min(1280\\,iw):min(720\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2",
+    maxDimension: 720,
     videoBitrate: '2500k',
     audioBitrate: '128k',
     crf: 23,
     preset: 'medium',
-    description: 'HD 720p - Optimized for social media'
+    description: 'HD 720p - Optimized for social media (preserves orientation)'
   },
   '1080p': {
-    resolution: '1920x1080',
+    scale: "min(1920\\,iw):min(1080\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2",
+    maxDimension: 1080,
     videoBitrate: '5000k',
     audioBitrate: '192k',
     crf: 23,
     preset: 'medium',
-    description: 'Full HD 1080p - High quality for social media'
+    description: 'Full HD 1080p - High quality for reels/TikTok (preserves orientation)'
   },
   'original': {
-    resolution: null,
+    scale: null,
+    maxDimension: null,
     videoBitrate: null,
     audioBitrate: '192k',
     crf: 23,
     preset: 'medium',
-    description: 'Original resolution - Quality compression only'
+    description: 'Original resolution - Quality compression only (preserves orientation)'
   }
 };
 
@@ -42,11 +45,19 @@ function compressVideo(inputPath, outputPath, resolution = '1080p', onProgress) 
         '-movflags +faststart',
         '-pix_fmt yuv420p',
         '-profile:v high',
-        '-level 4.2'
+        '-level 4.2',
+        '-map_metadata 0',
+        '-metadata:s:v:0 rotate=0'
       ]);
 
-    if (preset.resolution) {
-      command = command.size(preset.resolution);
+    // Apply scale filter to preserve aspect ratio and orientation
+    if (preset.scale) {
+      command = command.videoFilters([
+        {
+          filter: 'scale',
+          options: preset.scale
+        }
+      ]);
     }
 
     if (preset.videoBitrate) {
