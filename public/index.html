@@ -470,6 +470,12 @@
             letter-spacing: 0.5px;
         }
 
+        .status-uploaded {
+            background: linear-gradient(135deg, #b3e5fc, #81d4fa);
+            color: #01579b;
+            box-shadow: 0 4px 15px rgba(3, 169, 244, 0.3);
+        }
+
         .status-processing {
             background: linear-gradient(135deg, #fff9c4, #fff176);
             color: #f57f17;
@@ -538,6 +544,16 @@
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-convert {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-convert:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
 
         .btn-download {
@@ -716,11 +732,11 @@
                 </div>
             </div>
 
-            <button class="upload-btn" id="uploadBtn" disabled>Compress Video</button>
+            <button class="upload-btn" id="uploadBtn" disabled>Upload Video</button>
         </div>
 
         <div class="card jobs-section">
-            <h2>Compression Jobs</h2>
+            <h2>Videos</h2>
             <div id="jobsList"></div>
         </div>
     </div>
@@ -779,7 +795,7 @@
                 
                 if (xhr.status === 200) {
                     const result = JSON.parse(xhr.responseText);
-                    showNotification('Video uploaded! Compression started.');
+                    showNotification('Video uploaded! Ready to compress.');
                     videoFileInput.value = '';
                     selectedFile = null;
                     fileNameDisplay.textContent = 'No file selected';
@@ -787,12 +803,16 @@
                     loadJobs();
                     startPolling();
                 } else {
-                    const result = JSON.parse(xhr.responseText);
-                    showNotification(`Error: ${result.error}`, true);
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        showNotification(`Error: ${result.error}`, true);
+                    } catch (e) {
+                        showNotification('Upload failed. Please try again.', true);
+                    }
                 }
                 
                 uploadBtn.disabled = false;
-                uploadBtn.textContent = 'Compress Video';
+                uploadBtn.textContent = 'Upload Video';
                 uploadProgressFill.style.width = '0%';
                 uploadProgressPercent.textContent = '0%';
             });
@@ -801,7 +821,7 @@
                 uploadProgressContainer.classList.remove('active');
                 showNotification('Upload failed. Please try again.', true);
                 uploadBtn.disabled = false;
-                uploadBtn.textContent = 'Compress Video';
+                uploadBtn.textContent = 'Upload Video';
                 uploadProgressFill.style.width = '0%';
                 uploadProgressPercent.textContent = '0%';
             });
@@ -829,7 +849,7 @@
                 const jobs = await response.json();
                 
                 if (jobs.length === 0) {
-                    jobsList.innerHTML = '<div class="empty-state">No compression jobs yet. Upload a video to get started!</div>';
+                    jobsList.innerHTML = '<div class="empty-state">No videos yet. Upload a video to get started!</div>';
                 } else {
                     jobsList.innerHTML = jobs.map(job => createJobHTML(job)).join('');
                 }
@@ -840,6 +860,7 @@
 
         function createJobHTML(job) {
             const statusClass = `status-${job.status}`;
+            const showConvertButton = job.status === 'uploaded';
             const showActions = job.status === 'completed';
             const showProgress = job.status === 'processing';
             
@@ -856,6 +877,19 @@
                         <div class="stat-item">
                             <span class="stat-label">Saved:</span> ${job.compressionRatio}%
                         </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Time:</span> ${job.processingTime}s
+                        </div>
+                    </div>
+                `;
+            }
+
+            let uploadInfo = '';
+            if (job.status === 'uploaded') {
+                uploadInfo = `
+                    <div style="margin-top: 10px; padding: 12px; background: #e3f2fd; border-radius: 8px; color: #1565c0;">
+                        <strong>📁 File Size:</strong> ${formatFileSize(job.originalSize)} • 
+                        <strong>📐 Quality:</strong> ${job.resolution}
                     </div>
                 `;
             }
@@ -865,10 +899,12 @@
                     <div class="job-header">
                         <div class="job-info">
                             <div class="job-filename">${job.inputFile}</div>
-                            <div class="job-meta">Resolution: ${job.resolution} • Started: ${new Date(job.startTime).toLocaleString()}</div>
+                            <div class="job-meta">Resolution: ${job.resolution} • Uploaded: ${new Date(job.uploadTime || job.startTime).toLocaleString()}</div>
                         </div>
                         <span class="job-status ${statusClass}">${job.status}</span>
                     </div>
+                    
+                    ${uploadInfo}
                     
                     ${showProgress ? `
                         <div class="progress-bar">
@@ -881,14 +917,38 @@
                     
                     ${job.error ? `<div style="color: #ee0979; margin-top: 15px; font-weight: 600;">Error: ${job.error}</div>` : ''}
                     
-                    ${showActions ? `
-                        <div class="job-actions">
+                    <div class="job-actions">
+                        ${showConvertButton ? `
+                            <button class="btn btn-convert" onclick="startCompression('${job.id}')">🚀 Start Converting</button>
+                        ` : ''}
+                        ${showActions ? `
                             <button class="btn btn-download" onclick="downloadJob('${job.id}')">⬇ Download</button>
+                        ` : ''}
+                        ${(showActions || showConvertButton) ? `
                             <button class="btn btn-delete" onclick="deleteJob('${job.id}')">🗑 Delete</button>
-                        </div>
-                    ` : ''}
+                        ` : ''}
+                    </div>
                 </div>
             `;
+        }
+
+        async function startCompression(jobId) {
+            try {
+                const response = await fetch(`${API_URL}/api/compress/${jobId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Compression started!');
+                    loadJobs();
+                } else {
+                    showNotification(`Error: ${result.error}`, true);
+                }
+            } catch (error) {
+                showNotification('Failed to start compression', true);
+            }
         }
 
         async function downloadJob(jobId) {
@@ -896,14 +956,14 @@
         }
 
         async function deleteJob(jobId) {
-            if (!confirm('Are you sure you want to delete this job?')) return;
+            if (!confirm('Are you sure you want to delete this video?')) return;
             
             try {
                 await fetch(`${API_URL}/api/cleanup/${jobId}`, { method: 'DELETE' });
-                showNotification('Job deleted successfully');
+                showNotification('Video deleted successfully');
                 loadJobs();
             } catch (error) {
-                showNotification('Failed to delete job', true);
+                showNotification('Failed to delete video', true);
             }
         }
 
