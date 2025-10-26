@@ -11,6 +11,7 @@ A Node.js server application for high-quality video compression optimized for so
 ## Recent Changes
 - 2025-10-26: Initial project setup with Node.js, Express, and FFmpeg
 - 2025-10-26: Configured video compression with H.264/H.265 codecs
+- 2025-10-26: Enhanced UI with modern design, glassmorphism effects, and upload progress bar
 
 ## Project Architecture
 
@@ -28,11 +29,14 @@ A Node.js server application for high-quality video compression optimized for so
 - `compressor.js` - FFmpeg compression logic
 
 ### Key Features
-1. Video upload with file validation
-2. FFmpeg-based compression with quality presets
-3. Progress tracking for compression jobs
+1. Video upload with file validation and real-time upload progress bar
+2. FFmpeg-based compression with quality presets (720p, 1080p, Original)
+3. Progress tracking for compression jobs with live updates
 4. Download endpoint for compressed videos
 5. Automatic file cleanup
+6. Modern glassmorphism UI with smooth animations
+7. Toast notifications for user feedback
+8. Responsive design for mobile and desktop
 
 ## Compression Settings
 - **720p**: CRF 23, H.264 codec, optimized bitrate
