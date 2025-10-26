@@ -17,6 +17,8 @@ A production-ready Node.js server application for high-quality video compression
 - 2025-10-26: Separated upload and compression workflow for faster uploads
 - 2025-10-26: Added comprehensive error handling, validation, and health monitoring
 - 2025-10-26: Implemented production-ready features (rate limiting, auto-cleanup, logging)
+- 2025-10-26: Fixed video orientation preservation for social media (portrait stays portrait, landscape stays landscape)
+- 2025-10-26: Optimized for TikTok, Reels, and Instagram with proper aspect ratio preservation
 
 ## Project Architecture
 
@@ -79,10 +81,11 @@ A production-ready Node.js server application for high-quality video compression
    - Error messages don't expose system internals
 
 ## Compression Settings
-- **720p HD**: 1280x720, CRF 23, H.264 codec, 2.5 Mbps video bitrate, 128 kbps audio
-- **1080p Full HD**: 1920x1080, CRF 23, H.264 codec, 5 Mbps video bitrate, 192 kbps audio
+- **720p HD**: Max 1280x720 (preserves aspect ratio & orientation), CRF 23, H.264 codec, 2.5 Mbps video bitrate, 128 kbps audio
+- **1080p Full HD**: Max 1920x1080 (preserves aspect ratio & orientation), CRF 23, H.264 codec, 5 Mbps video bitrate, 192 kbps audio
 - **Original**: Keep original resolution, CRF 23, H.264 codec, 192 kbps audio
 - **Quality**: Near-lossless compression optimized for social media platforms
+- **Orientation**: Portrait videos stay portrait, landscape videos stay landscape (perfect for TikTok, Reels, Instagram)
 
 ## Operational Guide
 
