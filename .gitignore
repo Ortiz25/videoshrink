@@ -1,0 +1,12 @@
+node_modules/
+npm-debug.log
+yarn-error.log
+.DS_Store
+.env
+uploads/
+outputs/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
