@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const { compressVideo } = require('./compressor');
+const ffmpeg = require('fluent-ffmpeg');
 
 const app = express();
 const PORT = 5000;
@@ -21,6 +22,12 @@ app.use((req, res, next) => {
 
 const uploadsDir = path.join(__dirname, 'uploads');
 const outputsDir = path.join(__dirname, 'outputs');
+
+// 🧠 Manually set FFmpeg and FFprobe paths for Windows
+ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
+ffmpeg.setFfprobePath('/usr/bin/ffprobe');
+
+
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });

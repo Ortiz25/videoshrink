@@ -1,6 +1,16 @@
 const ffmpeg = require('fluent-ffmpeg');
 const path = require('path');
 
+// Manually tell fluent-ffmpeg where FFmpeg and FFprobe are located on Windows
+const ffmpegPath = "/usr/bin/ffmpeg";
+const ffprobePath = "/usr/bin/ffprobe";
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
+
+
+console.log("✅ FFmpeg configured at:", ffmpegPath);
+
 const QUALITY_PRESETS = {
   '720p': {
     scale: "min(1280\\,iw):min(720\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2",
